@@ -1,22 +1,31 @@
 from flask import json
-from src.globals import get_col_pos_by_name
+from scripts.globals import get_col_pos_by_name
 import gender_guesser.detector as gender
 
 
 def genderize(name, data):
 	d = gender.Detector()
-	print(d.get_gender(u"Bob"))
-	print(d.get_gender(u"Sally"))
-	print(d.get_gender(u"Pauley"))
 
-	headers = data[0]
+	def determine_header(old_headers):
+		if 'gender' in old_headers:
+			return old_headers
+		else:
+			old_headers.append('gender')
+			return old_headers
 
-	col_pos = get_col_pos_by_name(headers, name)
+	headers = determine_header(data[0])	
+	firstN_pos = get_col_pos_by_name(headers, name)
+	
+	for i in range(1, len(data)):
+		row = data[i]
+		first_name = row[firstN_pos]
 
-	print(col_pos)
+		new_gender = d.get_gender(first_name)
+		row.append(new_gender)
 
-	# return json.dumps(columns)
-	return 'Genderized'
+	payload = json.dumps(data)
+
+	return payload
 
 def slice_middle_name(columns, data):
 	return 'slice'

@@ -1,1 +1,1 @@
-from src import scripts
+from scripts import *
