@@ -16,6 +16,12 @@ def search_list_for_upper(word):
 	for i in range(1, len(word)):
 		if word[i] in upper_check:
 			# print(word[i], word[i] in upper_check)
-			return word[i] in upper_check
+			payload = {
+				"has_upper": word[i] in upper_check,
+				"letter": word[i],
+				"index": i
+			}
+
+			return payload
 
 	return False

@@ -1,7 +1,7 @@
 from flask import json
 from scripts.globals import get_col_pos_by_name, determine_headers, search_list_for_upper
 import gender_guesser.detector as gender
-import re
+import re, string
 # print(bool(search_list_for_upper("Saint-Fort")))
 # print(bool(re.search("^von|^Von|^van|^Van|^saint|^Saint|^St|^st|^De|^de|^La|^la|^Lo|^lo|^Di|^di", "Saint-Fort")))
 # print(re.search("^von|^Von|^van|^Van|^saint|^Saint|^St|^st|^De|^de|^La|^la|^Lo|^lo|^Di|^di", "Saint-Fort") and bool(search_list_for_upper("Saint-Fort")))
@@ -41,13 +41,23 @@ def slice_middle_name(columns, data):
 	lastN_pos = get_col_pos_by_name(headers, lastN_col)
 
 	def split_from_last_name():
-		for row in data:
+		weird_rows = []
+		empty_rows = []
+
+		for i in range(1, len(data)):
+			row = data[i]
 			last_name = row[lastN_pos]
 
-			if re.search("(^St\.|^st\.|^O'|^Saint\.|^saint\.|D'|d')", last_name):
+			if re.search("(^st\.|^o'|^saint\.|d')", last_name.lower()):
 				parts = re.split("\s", last_name)
-				print("suppose to be protected", parts)
-			elif re.search("esq.$|Esq.$|esq$|Esq$|III|jr|jr.", last_name):
+
+				if len(parts) > 2:
+					weird_rows.append(row)
+				elif len(parts) == 2:
+					row[lastN_pos] = string.capwords(parts[0] + " " + parts[1])
+				else:
+					row[lastN_pos] = string.capwords(last_name)
+			elif re.search("esq.$|esq$|III|jr|jr.", last_name.lower()):
 				parts = re.split("\s", last_name)
 				print("suppose to be protected 2", parts)
 			else:
@@ -56,20 +66,34 @@ def slice_middle_name(columns, data):
 				adjective_or_whole = parts[0]
 				if type(adjective_or_whole) == str:
 					if len(parts) > 2:
-						print(parts, )
+						weird_rows.append(row)
 					elif len(parts) == 2:
-						if re.search("^Mc$|^mc$|^Du$|^du$|^Mac$|^mac$", adjective_or_whole):
-							row[lastN_pos] = parts[0]+parts[1]
-							print("suppose to be fused", parts)
+						if re.search("^mc$|^du$|^di$|^mac$", adjective_or_whole.lower()):
+							row[lastN_pos] = string.capwords(parts[0]) + string.capwords(parts[1])
+						elif re.search("^saint$|^st$", adjective_or_whole.lower()):
+							row[lastN_pos] = string.capwords(last_name)
+						elif re.search("^von$|^van$|^de$|^la$|^lo$", adjective_or_whole.lower()):
+							row[lastN_pos] = adjective_or_whole.lower() + " " + string.capwords(parts[1])
 						else:
-							row[middleN_pos] = parts[0]
-							row[lastN_pos] = parts[1]
-					else:
-						if re.search("^von|^Von|^van|^Van|^saint|^Saint|^St|^st|^De|^de|^La|^la|^Lo|^lo|^Di|^di", last_name) and bool(search_list_for_upper(last_name)):
-							# print(adjective_or_whole, parts, last_name)
-							print("suppose to be separate", last_name)
+							row[middleN_pos] = string.capwords(parts[0])
+							row[lastN_pos] = string.capwords(parts[1])
+					elif len(parts) == 1:
+						if bool(search_list_for_upper(last_name)) and re.search("^von|^van|^saint|^st|^de|^la|^lo", last_name.lower()):
+							index = search_list_for_upper(last_name)['index']
 
-		return
+							row[lastN_pos] = last_name[0:index] + " " + last_name[index:len(last_name)]
+						else:
+							row[lastN_pos] = string.capwords(last_name)
+					else:
+						empty_rows.append(row)
+
+		payload = json.dumps({
+			"weird": weird_rows,
+			"empty": empty_rows,
+			"data": data
+		})
+
+		return payload
 	
 	# def format_apostrophe_into_last_name():
 	# 	return
@@ -79,9 +103,8 @@ def slice_middle_name(columns, data):
 
 	# def format_apostrophe_into_first_name():
 	# 	return
-
-	split_from_last_name()	
-	return 'slice'
+	
+	return split_from_last_name()	
 
 def format_address(columns, data):
 	return 'format'
