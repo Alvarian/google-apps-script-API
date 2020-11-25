@@ -1,0 +1,74 @@
+const app = SpreadsheetApp;
+const spreadSheet = app.getActiveSpreadsheet();
+
+function findColumnByName(columns, name) {
+  for (let i = 0; i < columns.length; i++) {
+    if (name == columns[i]) {
+      return i;
+    }
+  }
+}
+
+function callServer(columns, data, job) {
+  let draft = {
+    columns,
+    data
+  };
+  
+  const URL = 'https://e9cee02e6d02.ngrok.io/api/v1/'+job;
+  
+  let options = {
+    method: 'post',
+    contentType: 'application/json',
+    headers: {
+      Authorization: 'bearer ' + ScriptApp.getOAuthToken()
+    },
+    payload: JSON.stringify(draft), //Here passing json in JSON.stringify
+    muteHttpExceptions: true
+  };
+
+  return UrlFetchApp.fetch(URL, options);
+}
+
+function getCurrentSheet() {
+  const activeSheet = spreadSheet.getActiveSheet();
+  const payload = {
+    sheet: activeSheet,
+    rows: activeSheet.getDataRange().getValues(),
+    dataRange: activeSheet.getDataRange()
+  }
+    
+  return payload;
+}
+
+function getSheetByName(name) {
+  const chosenSheet = app.getActive().getSheetByName(name);
+  const payload = {
+    sheet: chosenSheet,
+    rows: (chosenSheet) ? chosenSheet.getDataRange().getValues() : null,
+    dataRange: (chosenSheet) ? chosenSheet.getDataRange() : null
+  }
+    
+  return payload;
+}
+
+function createNewSheet(newName, records, columns) {
+  let newSheet = getSheetByName(newName);
+  
+  if (newSheet.sheet != null) {
+    spreadSheet.deleteSheet(newSheet.sheet);
+  }
+  
+  newSheet = spreadSheet.insertSheet();
+  newSheet.setName(newName);
+  
+  newSheet.getRange(1, 1, records.length, columns.length).setValues(records);
+  
+  const payload = {
+    sheet: newSheet,
+    rows: newSheet.getDataRange().getValues(),
+    dataRange: newSheet.getDataRange()
+  };
+  
+  return payload;
+}

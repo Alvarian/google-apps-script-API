@@ -1,10 +1,7 @@
 from flask import json
-from scripts.globals import get_col_pos_by_name, determine_headers, search_list_for_upper
+from determinizer.globals import get_col_pos_by_name, determine_headers, search_list_for_upper
 import gender_guesser.detector as gender
 import re, string
-# print(bool(search_list_for_upper("Saint-Fort")))
-# print(bool(re.search("^von|^Von|^van|^Van|^saint|^Saint|^St|^st|^De|^de|^La|^la|^Lo|^lo|^Di|^di", "Saint-Fort")))
-# print(re.search("^von|^Von|^van|^Van|^saint|^Saint|^St|^st|^De|^de|^La|^la|^Lo|^lo|^Di|^di", "Saint-Fort") and bool(search_list_for_upper("Saint-Fort")))
 
 
 def genderize(columns, data):
@@ -36,11 +33,10 @@ def slice_middle_name(columns, data):
 	lastN_col = columns[1]
 
 	headers = determine_headers(data[0], 'Middle Name')	
-	firstN_pos = get_col_pos_by_name(headers, firstN_col)
 	middleN_pos = get_col_pos_by_name(headers, 'Middle Name')
-	lastN_pos = get_col_pos_by_name(headers, lastN_col)
 
 	def split_from_last_name():
+		lastN_pos = get_col_pos_by_name(headers, lastN_col)
 		weird_rows = []
 		empty_rows = []
 
@@ -48,18 +44,40 @@ def slice_middle_name(columns, data):
 			row = data[i]
 			last_name = row[lastN_pos]
 
-			if re.search("(^st\.|^o'|^saint\.|d')", last_name.lower()):
+			if re.search("(^st\.|^o'|^saint\.|^d')", last_name.lower()):
 				parts = re.split("\s", last_name)
 
 				if len(parts) > 2:
 					weird_rows.append(row)
 				elif len(parts) == 2:
-					row[lastN_pos] = string.capwords(parts[0] + " " + parts[1])
+					if re.search("(^st\.$|^o'$|^saint\.$|^d'$)", parts[0].lower()):
+						row[lastN_pos] = parts[0].title() + " " + parts[1].title()
+					else:
+						row[middleN_pos] = parts[0].title()
+						row[lastN_pos] = parts[1].title()
 				else:
-					row[lastN_pos] = string.capwords(last_name)
-			elif re.search("esq.$|esq$|III|jr|jr.", last_name.lower()):
+					row[lastN_pos] = last_name
+			elif re.search("(esq\.$|esq$|III$|jr$|jr\.$)", last_name.lower()):
 				parts = re.split("\s", last_name)
-				print("suppose to be protected 2", parts)
+
+				if len(parts) > 2:
+					weird_rows.append(row)
+					row[middleN_pos] = parts[0].title()
+
+					new_last_name = ''
+					for i in range(1, len(parts)):
+						if i < len(parts):
+							new_last_name = new_last_name + parts[i] + " "
+						else:
+							new_last_name = new_last_name + parts[i]
+
+					row[lastN_pos] = new_last_name
+				elif len(parts) == 2:
+					if re.search("(^esq\.$|^esq$|^III$|^jr$|^jr\.$)", parts[1].lower()):
+						row[lastN_pos] = parts[0].title() + " " + parts[1].title()
+					else:
+						row[middleN_pos] = parts[0].title()
+						row[lastN_pos] = parts[1].title()				
 			else:
 				parts = re.split("\s|\W", last_name)
 
@@ -94,17 +112,48 @@ def slice_middle_name(columns, data):
 		})
 
 		return payload
-	
-	# def format_apostrophe_into_last_name():
-	# 	return
 
 	def split_from_first_name():
-		return
+		lastN_payload = json.loads(split_from_last_name())
+		firstN_pos = get_col_pos_by_name(headers, firstN_col)
 
-	# def format_apostrophe_into_first_name():
-	# 	return
+		for row in lastN_payload['data']:
+			first_name = row[firstN_pos]
+
+			if not row[middleN_pos]:
+				if re.search("('|\.)", first_name.lower()):
+					parts = re.split("\s", first_name)
+
+					if len(parts) > 2:
+						lastN_payload['weird'].append(row)
+					elif len(parts) == 2:
+						row[firstN_pos] = parts[0].title()
+						row[middleN_pos] = parts[1].title()
+					else:
+						row[firstN_pos] = parts[0].title()
+				else:
+					if not first_name:
+						lastN_payload['empty'].append(row)
+					else:
+						parts = re.split("\s|\W", first_name)
+
+						if len(parts) > 2:
+							lastN_payload['weird'].append(row)
+						elif len(parts) == 2:
+							row[firstN_pos] = parts[0].title()
+							row[middleN_pos] = parts[1].title()
+						else:
+							row[firstN_pos] = parts[0].title()
+
+		payload = json.dumps({
+			"weird": lastN_payload['weird'],
+			"empty": lastN_payload['empty'],
+			"data": lastN_payload['data']
+		})
+
+		return payload
 	
-	return split_from_last_name()	
+	return split_from_first_name()	
 
 def format_address(columns, data):
 	return 'format'
