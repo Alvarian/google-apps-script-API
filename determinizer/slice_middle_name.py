@@ -1,32 +1,7 @@
 from flask import json
 from determinizer.globals import get_col_pos_by_name, determine_headers, search_list_for_upper
-import gender_guesser.detector as gender
 import re, string
 
-
-def genderize(columns, data):
-	column = columns[0]
-
-	d = gender.Detector()
-
-	headers = determine_headers(data[0], 'gender')	
-	firstN_pos = get_col_pos_by_name(headers, column)
-	gender_pos = get_col_pos_by_name(headers, 'gender')
-	
-	for i in range(1, len(data)):
-		row = data[i]
-		first_name = row[firstN_pos]
-
-		new_gender = d.get_gender(first_name)
-
-		if len(headers) == len(row):
-			row[gender_pos] = new_gender
-		else:
-			row.append(new_gender)
-
-	payload = json.dumps(data)
-
-	return payload
 
 def slice_middle_name(columns, data):
 	firstN_col = columns[0]
@@ -154,12 +129,3 @@ def slice_middle_name(columns, data):
 		return payload
 	
 	return split_from_first_name()	
-
-def format_address(columns, data):
-	return 'format'
-
-def get_duplicates(columns, data):
-	return 'get'
-
-def del_duplicates(columns, data):
-	return 'del'

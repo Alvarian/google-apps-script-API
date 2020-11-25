@@ -1,7 +1,8 @@
 from flask import Flask, request
 
 app = Flask(__name__)
-from determinizer.scripts import genderize, slice_middle_name, format_address, get_duplicates, del_duplicates
+# from determinizer.scripts import genderize, slice_middle_name, format_address, get_duplicates, del_duplicates
+from determinizer import genderize, slice_middle_name, format_address, get_duplicates, del_duplicates
 
 
 @app.route('/api/v1/genderize', methods=['post'])
