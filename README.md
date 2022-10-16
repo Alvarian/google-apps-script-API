@@ -1,5 +1,49 @@
 # Instructions
-Ipsum
+[Install python 3+](https://www.python.org/) and [pip](https://pypi.org/project/pip/) into your device. Also [install and sign up to ngrok](https://ngrok.com/) to tunnel this app's local URL to be used by google apps script.
+
+[Go to the security section of your google account settings and generate a new app password.](https://myaccount.google.com/u/1/security?hl=en) Fill EMAIL_U with the email associated with the password you generated and EMAIL_P with the password itself in .env and begin the server:
+```bash
+python app.py
+```
+
+## Usage
+Log in to your google account and navigate to google sheets and in a new sheet fill one column with random first names with a column title of "Full Name". 
+
+Go to the top tool bar > Extensions > AppSheet > Create an app.
+
+Create a new sheet and put the following algorithms in it:
+```
+function callServer(columns, data, job)  {
+    let draft = {
+        columns,
+        data
+    };
+
+    const URL = <YOUR_GENERATED_NGROK_URL>+job;
+
+    let options = {
+        method: "POST",
+        contentType: "application/json",
+        headers: {
+            "Authorization": "bearer " + ScriptApp.getOAuthToken()
+        },
+        payload: JSON.stringify(draft),
+        muteHttpExceptions: true
+    };
+
+    return urlFetchApp.fetch(URL, options);
+}
+
+function getGuessedGender() {
+    const cs = getCurrentSheet();
+
+    const res = JSON.parse(callServer(["first_name"], cs.rows, "genderize"));
+
+    cs.sheet.get(1, 1, res.length, res[0].length).setValues(res);
+}
+```
+Run "getGuessedGender" as the main point of starting the script.
+
 
 :octocat:
 
