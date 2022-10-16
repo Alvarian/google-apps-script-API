@@ -1,7 +1,7 @@
 # Instructions
 [Install python 3+](https://www.python.org/) and [pip](https://pypi.org/project/pip/) into your device. Also [install and sign up to ngrok](https://ngrok.com/) to tunnel this app's local URL to be used by google apps script.
 
-[Go to the security section of your google account settings and generate a new app password.](https://myaccount.google.com/u/1/security?hl=en) Fill EMAIL_U with the email associated with the password you generated and EMAIL_P with the password itself in .env and begin the server:
+Begin the server:
 ```bash
 python app.py
 ```
