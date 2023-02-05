@@ -1,3 +1,8 @@
+![](https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white)
+![](https://img.shields.io/badge/Google%20Sheets-34A853?style=for-the-badge&logo=google-sheets&logoColor=white)
+![](https://img.shields.io/badge/JavaScript-323330?style=for-the-badge&logo=javascript&logoColor=F7DF1E)
+***
+
 # Instructions
 [Install python 3+](https://www.python.org/) and [pip](https://pypi.org/project/pip/) into your device. Also [install and sign up to ngrok](https://ngrok.com/) to tunnel this app's local URL to be used by google apps script.
 
