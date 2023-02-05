@@ -3,13 +3,22 @@
 ![](https://img.shields.io/badge/JavaScript-323330?style=for-the-badge&logo=javascript&logoColor=F7DF1E)
 ***
 
-# Instructions
-[Install python 3+](https://www.python.org/) and [pip](https://pypi.org/project/pip/) into your device. Also [install and sign up to ngrok](https://ngrok.com/) to tunnel this app's local URL to be used by google apps script.
+# Introduction
+This project is an API catered to google sheet via google apps script. It handles common and repetitive formatting tasks thats usually in demand for demographic type data.
 
-Begin the server:
-```bash
-python app.py
+## Getting Started
+[Install python 3+](https://www.python.org/) and [pip](https://pypi.org/project/pip/) into your device. After pip is installed in your computer, we need flask to continue, so in your terminal run:
 ```
+pip install flask
+python manage.py
+```
+
+## Expose app
+In order for google apps script to request to the running application, the local endpoint needs to be forwarded and exposed to the web using ![ngrok](). Follow the intructions until usage and run:
+```
+ngrok http 5000
+```
+Copy the "Forwarding" url, ex: https://7d0b-173-52-201-90.ngrok.io, to use in the next step.
 
 ## Usage
 Log in to your google account and navigate to google sheets and in a new sheet fill one column with random first names with a column title of "Full Name". 
@@ -47,8 +56,13 @@ function getGuessedGender() {
     cs.sheet.get(1, 1, res.length, res[0].length).setValues(res);
 }
 ```
-Run "getGuessedGender" as the main point of starting the script.
+`YOUR_GENERATED_NGROK_URL` is where you can paste the ngrok url, then run "getGuessedGender" as the main point of starting the script.
 
+# References
+* Flask (https://flask.palletsprojects.com/en/2.2.x/)
+* Ngrok (https://ngrok.com/)
+* Google Apps Script (https://developers.google.com/apps-script/guides/sheets/functions)
+* JavaScript Fetch (https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch)
 
 :octocat:
 
