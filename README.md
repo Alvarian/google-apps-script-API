@@ -59,6 +59,7 @@ function getGuessedGender() {
 `YOUR_GENERATED_NGROK_URL` is where you can paste the ngrok url, then run "getGuessedGender" as the main point of starting the script.
 
 # References
+* PyPi (https://pypi.org/project/pip/)
 * Flask (https://flask.palletsprojects.com/en/2.2.x/)
 * Ngrok (https://ngrok.com/)
 * Google Apps Script (https://developers.google.com/apps-script/guides/sheets/functions)
